@@ -4,12 +4,14 @@ ROOT := .
 GRAPHENE_DIR := /opt/graphene
 RUNTIME_DIR := $(GRAPHENE_DIR)/Runtime
 SGX_DIR := $(GRAPHENE_DIR)/Pal/src/host/Linux-SGX
+MANIFEST_TEMPLATE = ./manifest_template
 
 SRC := $(ROOT)
 OBJ := $(ROOT)
 SOURCES := $(wildcard $(SRC)/*.c)
 OBJECTS := $(patsubst $(SRC)/%.c, $(OBJ)/%, $(SOURCES))
 MANIFEST_SGXS := $(patsubst $(SRC)/%.c, $(OBJ)/%.manifest.sgx, $(SOURCES))
+MANIFESTS := $(patsubst $(SRC)/%.c, $(OBJ)/%.manifest, $(SOURCES))
 TOKENS := $(patsubst $(SRC)/%.c, $(OBJ)/%.token, $(SOURCES))
 SIGS := $(patsubst $(SRC)/%.c, $(OBJ)/%.sig, $(SOURCES))
 RUNS := $(patsubst $(OBJ)/%, run-%, $(OBJECTS))
@@ -30,6 +32,8 @@ $(SGX_SIGNER_KEY):
 
 build: $(OBJECTS)
 
+manifest: $(MANIFESTS)
+
 sgx-manifest: $(MANIFEST_SGXS)
 
 tokens: $(TOKENS)
@@ -39,13 +43,17 @@ run: $(RUNS)
 clean:
 	rm -f $(OBJECTS)
 	rm -f $(TOKENS)
+	rm -f $(MANIFESTS)
 	rm -f $(MANIFEST_SGXS)
 	rm -f $(SIGS)
 
 $(OBJ)/%: $(SRC)/%.c
 	$(CC) -I$(ROOT) $< -o $@
 
-$(OBJ)/%.manifest.sgx: %.manifest $(LIBPAL) $(SGX_SIGNER_KEY)
+$(OBJ)/%.manifest: $(MANIFEST_TEMPLATE)
+	sed 's/%GRAPHENE_PATH%/$(subst /,\/,$(GRAPHENE_DIR))/g' $< > $@
+
+$(OBJ)/%.manifest.sgx: $(OBJ)/%.manifest $(LIBPAL) $(SGX_SIGNER_KEY)
 	$(SGX_SIGN) -output $@ -exec $* -manifest $<
 
 $(OBJ)/%.token: $(OBJ)/%.manifest.sgx

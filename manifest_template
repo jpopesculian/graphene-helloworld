@@ -1,0 +1,10 @@
+loader.preload = file:%GRAPHENE_PATH%/Runtime/libsysdb.so
+loader.env.LD_LIBRARY_PATH = /lib
+# loader.debug_type = inline
+
+fs.mount.lib.type = chroot
+fs.mount.lib.path = /lib
+fs.mount.lib.uri = file:%GRAPHENE_PATH%/Runtime
+
+sgx.trusted_files.ld = file:%GRAPHENE_PATH%/Runtime/ld-linux-x86-64.so.2
+sgx.trusted_files.libc = file:%GRAPHENE_PATH%/Runtime/libc.so.6
