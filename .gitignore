@@ -1,0 +1,4 @@
+helloworld
+*.manifest.sgx
+*.sig
+*.token
