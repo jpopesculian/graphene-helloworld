@@ -2,3 +2,4 @@ helloworld
 *.manifest.sgx
 *.sig
 *.token
+*.manifest
